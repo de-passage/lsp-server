@@ -1,9 +1,9 @@
 package main
 
-
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"strconv"
@@ -30,7 +30,7 @@ func NewParser() *Parser {
 	}
 }
 
-func (p *Parser) Parse(r io.Reader) (string, error) {
+func (p *Parser) Parse(r io.Reader) (Request, error) {
 	reader := bufio.NewReader(r)
 
 	for {
@@ -38,7 +38,7 @@ func (p *Parser) Parse(r io.Reader) (string, error) {
 		case ParsingHeader:
 			lineBytes, _, err := reader.ReadLine()
 			if err != nil {
-				return "", err
+				return Request{}, err
 			}
 
 			line := string(lineBytes)
@@ -50,7 +50,7 @@ func (p *Parser) Parse(r io.Reader) (string, error) {
 				if strings.HasPrefix(p.headerBuf.String(), contentLenHeader) {
 					p.contentLen, _ = strconv.Atoi(strings.TrimPrefix(strings.Split(p.headerBuf.String(), "\r\n")[0], contentLenHeader))
 				} else {
-					return "", fmt.Errorf("invalid header: %s", p.headerBuf.String())
+					return Request{}, fmt.Errorf("invalid header: %s", p.headerBuf.String())
 				}
 
 				p.state = ParsingBody
@@ -59,22 +59,23 @@ func (p *Parser) Parse(r io.Reader) (string, error) {
 
 		case ParsingBody:
 			if p.contentLen <= 0 {
-				return "", fmt.Errorf("invalid content length")
+				return Request{}, fmt.Errorf("invalid content length")
 			}
 
 			bodyBytes := make([]byte, p.contentLen)
 			_, err := io.ReadFull(reader, bodyBytes)
 			if err != nil {
-				return "", err
+				return Request{}, err
 			}
 
 			p.bodyBuf.Write(bodyBytes)
 			if p.bodyBuf.Len() == p.contentLen {
 				p.state = ParsingHeader
-				message := p.bodyBuf.String()
+        var message Request
+				err := json.NewDecoder(&p.bodyBuf).Decode(&message);
 				p.bodyBuf.Reset()
 				p.contentLen = 0
-				return message, nil
+				return message, err
 			}
 		}
 	}

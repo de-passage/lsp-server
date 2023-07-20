@@ -14,9 +14,13 @@ func TestParser(t *testing.T) {
 		t.Errorf("Unexpected error: %v", err)
 	}
 
-	expected := "{\"jsonrpc\": \"2.0\", \"method\": \"initialize\"}"
-	if message != expected {
-		t.Errorf("Expected '%s', got '%s'", expected, message)
+	expected := Request {
+    Jsonrpc: "2.0",
+    Method:  "initialize",
+  }
+
+	if message.Jsonrpc != expected.Jsonrpc || message.Method != expected.Method || message.ID != expected.ID {
+		t.Errorf("Expected '%v', got '%v'", expected, message)
 	}
 
 	// Test 2: Invalid header
