@@ -6,6 +6,10 @@ import (
 )
 
 func main() {
+  startTcpServer()
+}
+
+func startTcpServer() {
   fmt.Println("Starting server...")
   listener, err := net.Listen("tcp", "localhost:8080")
   if err != nil {
