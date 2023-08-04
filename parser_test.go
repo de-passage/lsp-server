@@ -3,6 +3,7 @@ package main
 import (
 	"strings"
 	"testing"
+  "encoding/json"
 )
 
 func TestParser(t *testing.T) {
@@ -14,7 +15,7 @@ func TestParser(t *testing.T) {
 		t.Errorf("Unexpected error: %v", err)
 	}
 
-	expected := Request {
+	expected := Request[json.RawMessage] {
     Jsonrpc: "2.0",
     Method:  "initialize",
   }
